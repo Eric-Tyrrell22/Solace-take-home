@@ -19,3 +19,5 @@ if it became a large enough issue you could look into running an elasticsearch, 
 you'd want to add a debounce function in order to prevent sending 1 request per character typed.
 
 I believe next 14 is no longer maintained so I did consider upgrading this.
+
+Also, you'd obviously want to start adding tests
