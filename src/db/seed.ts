@@ -3,7 +3,7 @@ import { seed } from "drizzle-seed";
 import postgres from "postgres";
 import * as schema from "./schema";
 
-const specialties = [
+const specialtiesList = [
   "Bipolar",
   "LGBTQ",
   "Medication/Prescribing",
@@ -45,9 +45,20 @@ const main = async () => {
 
   console.log("Seeding database...");
 
-  await seed(db, schema, {
-    count: 15,
-  }).refine((funcs) => ({
+  // Clear existing data
+  await db.delete(schema.advocateSpecialties);
+  await db.delete(schema.advocates);
+  await db.delete(schema.specialties);
+
+  await seed(db, schema).refine((funcs) => ({
+    specialties: {
+      count: specialtiesList.length,
+      columns: {
+        name: funcs.valuesFromArray({
+          values: specialtiesList,
+        }),
+      },
+    },
     advocates: {
       count: 15,
       columns: {
@@ -56,13 +67,6 @@ const main = async () => {
         city: funcs.city(),
         degree: funcs.valuesFromArray({
           values: ["MD", "PhD", "MSW"],
-        }),
-        specialties: funcs.valuesFromArray({
-          values: specialties.map((_, idx, arr) => {
-            const start = Math.floor(Math.random() * arr.length);
-            const end = Math.floor(Math.random() * (arr.length - start)) + start + 1;
-            return arr.slice(start, end);
-          }),
         }),
         yearsOfExperience: funcs.int({
           minValue: 1,
@@ -74,6 +78,26 @@ const main = async () => {
       },
     },
   }));
+
+  // Manually seed advocate_specialties to ensure uniqueness
+  const advocateSpecialtiesData = [];
+  for (let advocateId = 1; advocateId <= 15; advocateId++) {
+    // Randomly select 3 unique specialties for each advocate
+    const selectedSpecialties = new Set<number>();
+    while (selectedSpecialties.size < 3) {
+      const specialtyId = Math.floor(Math.random() * specialtiesList.length) + 1;
+      selectedSpecialties.add(specialtyId);
+    }
+
+    for (const specialtyId of selectedSpecialties) {
+      advocateSpecialtiesData.push({
+        advocateId,
+        specialtyId,
+      });
+    }
+  }
+
+  await db.insert(schema.advocateSpecialties).values(advocateSpecialtiesData);
 
   console.log("Database seeded successfully!");
 
