@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Advocate } from "@/types/advocate";
+import AdvocateCard from "./AdvocateCard";
 
 interface AdvocatesTableProps {
   advocates: Advocate[];
@@ -35,51 +36,39 @@ export default function AdvocatesTable({ advocates }: AdvocatesTableProps) {
   };
 
   return (
-    <div>
-      <div>
-        <p>Search</p>
-        <p>
-          Searching for: <span>{searchTerm}</span>
+    <div className="p-3 max-w-[1400px] mx-auto">
+      <div className="mb-6">
+        <p className="text-xl font-semibold mb-2">Search</p>
+        <p className="mb-4 text-gray-600 text-sm">
+          Searching for: <span className="font-medium">{searchTerm || "all advocates"}</span>
         </p>
-        <input
-          style={{ border: "1px solid black" }}
-          value={searchTerm}
-          onChange={handleSearchChange}
-        />
-        <button onClick={handleReset}>Reset Search</button>
+        <div className="flex gap-2 flex-wrap justify-center">
+          <input
+            className="border border-gray-300 px-4 py-2 rounded-md text-base flex-[1_1_200px] min-w-0"
+            placeholder="Search advocates..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
+          <button
+            onClick={handleReset}
+            className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-md cursor-pointer font-medium whitespace-nowrap flex-[0_1_auto]"
+          >
+            Reset Search
+          </button>
+        </div>
       </div>
-      <br />
-      <br />
-      <table>
-        <thead>
-          <tr>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>City</th>
-            <th>Degree</th>
-            <th>Specialties</th>
-            <th>Years of Experience</th>
-            <th>Phone Number</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredAdvocates.map((advocate) => (
-            <tr key={advocate.id}>
-              <td>{advocate.firstName}</td>
-              <td>{advocate.lastName}</td>
-              <td>{advocate.city}</td>
-              <td>{advocate.degree}</td>
-              <td>
-                {advocate.specialties.map((specialty, index) => (
-                  <div key={`${specialty}-${advocate.id}`}>{specialty}</div>
-                ))}
-              </td>
-              <td>{advocate.yearsOfExperience}</td>
-              <td>{advocate.phoneNumber}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4">
+        {filteredAdvocates.map((advocate) => (
+          <AdvocateCard key={advocate.id} advocate={advocate} />
+        ))}
+      </div>
+
+      {filteredAdvocates.length === 0 && (
+        <div className="text-center py-12 text-gray-500 text-lg">
+          No advocates found matching your search.
+        </div>
+      )}
     </div>
   );
 }
