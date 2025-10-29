@@ -1,8 +1,35 @@
 import db from "../../../db";
 import type { Advocate } from "../../../types/advocate";
+import { eq, inArray } from "drizzle-orm";
+import { advocates, advocateSpecialties } from "../../../db/schema";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const specialtyId = searchParams.get("specialtyId");
+
+  let advocateIds: number[] | undefined;
+
+  // If specialty filter is provided, get advocate IDs with that specialty
+  if (specialtyId) {
+    const specialtyIdNum = parseInt(specialtyId, 10);
+    const advocatesWithSpecialty = await db
+      .select({ advocateId: advocateSpecialties.advocateId })
+      .from(advocateSpecialties)
+      .where(eq(advocateSpecialties.specialtyId, specialtyIdNum));
+
+    advocateIds = advocatesWithSpecialty.map((row) => row.advocateId);
+
+    // If no advocates found with this specialty, return empty array
+    if (advocateIds.length === 0) {
+      return Response.json({ data: [] });
+    }
+  }
+
+  // Build the query with optional advocate ID filter
   const advocatesData = await db.query.advocates.findMany({
+    ...(advocateIds && {
+      where: inArray(advocates.id, advocateIds),
+    }),
     with: {
       advocateSpecialties: {
         with: {
