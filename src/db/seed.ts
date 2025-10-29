@@ -50,7 +50,7 @@ const main = async () => {
   await db.delete(schema.advocates);
   await db.delete(schema.specialties);
 
-  await seed(db, schema).refine((funcs) => ({
+  await seed(db, schema, { count: 0 }).refine((funcs) => ({
     specialties: {
       count: specialtiesList.length,
       columns: {
@@ -76,6 +76,9 @@ const main = async () => {
           template: "555#######",
         }),
       },
+    },
+    advocateSpecialties: {
+      count: 0,
     },
   }));
 
